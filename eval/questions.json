@@ -1,0 +1,18 @@
+[
+  { "question": "How many vacation days does a new employee get?", "source": "employee-handbook.md", "heading": "Vacation", "answer": "18" },
+  { "question": "Until when can I use carried-over vacation days?", "source": "employee-handbook.md", "heading": "Vacation", "answer": "March 31" },
+  { "question": "When do I need a doctor's note for being sick?", "source": "employee-handbook.md", "heading": "Sick Leave", "answer": "3" },
+  { "question": "Can I work from Portugal for two months?", "source": "employee-handbook.md", "heading": "Remote Work", "answer": "30 days" },
+  { "question": "What is the hotel limit per night in a big city?", "source": "employee-handbook.md", "heading": "Travel", "answer": "220" },
+  { "question": "How much money do I get for courses and conferences each year?", "source": "employee-handbook.md", "heading": "Learning Budget", "answer": "1,500" },
+  { "question": "How much does the Growth plan cost?", "source": "routewise-product-faq.md", "heading": "Plans", "answer": "79" },
+  { "question": "Do I need a credit card for the trial?", "source": "routewise-product-faq.md", "heading": "Free Trial", "answer": "No" },
+  { "question": "What happens if uptime drops below the SLA?", "source": "routewise-product-faq.md", "heading": "Support and SLA", "answer": "credit" },
+  { "question": "How long is GPS location history stored?", "source": "routewise-product-faq.md", "heading": "Data and Privacy", "answer": "13 months" },
+  { "question": "What is the API rate limit?", "source": "routewise-product-faq.md", "heading": "Integrations", "answer": "600" },
+  { "question": "Which MFA methods are allowed?", "source": "security-policy.md", "heading": "Accounts and Passwords", "answer": "YubiKey" },
+  { "question": "How fast must a stolen laptop be reported?", "source": "security-policy.md", "heading": "Devices", "answer": "24 hours" },
+  { "question": "How long are application logs kept?", "source": "security-policy.md", "heading": "Data Retention", "answer": "90 days" },
+  { "question": "How much is the on-call stipend?", "source": "engineering-onboarding.md", "heading": "On-Call", "answer": "400" },
+  { "question": "How big can a pull request be before it should be split?", "source": "engineering-onboarding.md", "heading": "Development Workflow", "answer": "400" }
+]

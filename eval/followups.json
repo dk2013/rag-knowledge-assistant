@@ -1,0 +1,82 @@
+[
+  {
+    "history": [
+      { "role": "user", "content": "How many vacation days does a new employee get?" },
+      { "role": "assistant", "content": "New full-time employees get 18 days of paid vacation per year [1]." }
+    ],
+    "question": "And after three years?",
+    "source": "employee-handbook.md", "heading": "Vacation", "answer": "22"
+  },
+  {
+    "history": [
+      { "role": "user", "content": "What is the hotel limit per night in a big city?" },
+      { "role": "assistant", "content": "Up to 220 USD per night in major cities [1]." }
+    ],
+    "question": "What about smaller towns?",
+    "source": "employee-handbook.md", "heading": "Travel", "answer": "160"
+  },
+  {
+    "history": [
+      { "role": "user", "content": "How much money do I get for courses and conferences each year?" },
+      { "role": "assistant", "content": "Every employee has an annual learning budget of 1,500 USD [1]." }
+    ],
+    "question": "Do I need approval to spend it?",
+    "source": "employee-handbook.md", "heading": "Learning Budget", "answer": "500"
+  },
+  {
+    "history": [
+      { "role": "user", "content": "Do I need a credit card for the trial?" },
+      { "role": "assistant", "content": "No, a credit card is not required to start the trial [1]." }
+    ],
+    "question": "How long does it last?",
+    "source": "routewise-product-faq.md", "heading": "Free Trial", "answer": "14"
+  },
+  {
+    "history": [
+      { "role": "user", "content": "How long is GPS location history stored?" },
+      { "role": "assistant", "content": "GPS location history is kept for 13 months and then deleted [1]." }
+    ],
+    "question": "Where is it hosted for Canadian customers?",
+    "source": "routewise-product-faq.md", "heading": "Data and Privacy", "answer": "ca-central-1"
+  },
+  {
+    "history": [
+      { "role": "user", "content": "Which MFA methods are allowed?" },
+      { "role": "assistant", "content": "Hardware security keys (YubiKey) and the Okta Verify app [1]." }
+    ],
+    "question": "Why not SMS?",
+    "source": "security-policy.md", "heading": "Accounts and Passwords", "answer": "SIM-swap"
+  },
+  {
+    "history": [
+      { "role": "user", "content": "What is the response time for a SEV-1 incident?" },
+      { "role": "assistant", "content": "SEV-1 incidents require a response within 15 minutes [1]." }
+    ],
+    "question": "When do customers have to be told?",
+    "source": "security-policy.md", "heading": "Incident Response", "answer": "72 hours"
+  },
+  {
+    "history": [
+      { "role": "user", "content": "How much is the on-call stipend?" },
+      { "role": "assistant", "content": "On-call engineers receive 400 USD per week [1]." }
+    ],
+    "question": "When can I join it?",
+    "source": "engineering-onboarding.md", "heading": "On-Call", "answer": "3 months"
+  },
+  {
+    "history": [
+      { "role": "user", "content": "How big can a pull request be before it should be split?" },
+      { "role": "assistant", "content": "Pull requests over 400 changed lines should be split [1]." }
+    ],
+    "question": "How many approvals does it need?",
+    "source": "engineering-onboarding.md", "heading": "Development Workflow", "answer": ["one approv", "1 approv", "single approv", "one review"]
+  },
+  {
+    "history": [
+      { "role": "user", "content": "How many vacation days does a new employee get?" },
+      { "role": "assistant", "content": "New full-time employees get 18 days of paid vacation per year [1]." }
+    ],
+    "question": "What is the API rate limit?",
+    "source": "routewise-product-faq.md", "heading": "Integrations", "answer": "600"
+  }
+]
