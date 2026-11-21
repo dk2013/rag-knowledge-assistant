@@ -1,0 +1,10 @@
+node_modules
+.next
+.env
+*.log
+.DS_Store
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# personal learning notes (not part of the public repo)
+BUILD_LOG.md
