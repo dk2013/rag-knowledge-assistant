@@ -24,4 +24,7 @@ export const config = {
   rateLimitPerIp: Number(env("RATE_LIMIT_PER_IP", "0")), // questions per visitor IP per hour, 0 = no limit
   dailyQuestionLimit: Number(env("DAILY_QUESTION_LIMIT", "0")), // questions per day for the whole site, 0 = no limit
   repoUrl: env("REPO_URL", ""), // shown in the demo banner
+  // Tokens for trusted services (e.g. the AI sales agent demo): they skip the per-IP limit,
+  // but still count toward the daily limit. Comma-separated, each at least 24 characters.
+  serviceTokens: env("SERVICE_TOKENS", "").split(",").map((t) => t.trim()).filter((t) => t.length >= 24),
 };

@@ -4,7 +4,7 @@ import { config } from "@/lib/config";
 import { streamChat, modelLabel, ProviderError, type ChatMessage } from "@/lib/llm";
 import { buildMessages } from "@/lib/prompt";
 import { retrieve } from "@/lib/retrieve";
-import { checkRateLimit, clientIp } from "@/lib/rate-limit";
+import { checkRateLimit, clientIp, isServiceCall } from "@/lib/rate-limit";
 import { rewriteQuery } from "@/lib/rewrite";
 
 const MAX_BODY_CHARS = 50_000; // a conversation is a few KB; anything bigger is not a real chat
@@ -29,7 +29,8 @@ export async function POST(req: Request) {
   if (question.length > 2000) return Response.json({ error: "Question is too long" }, { status: 400 });
 
   // checked after validation, so malformed requests don't use up a visitor's quota
-  const limit = checkRateLimit(clientIp(req));
+  // trusted services (the AI sales agent demo) skip the per-IP limit; the daily limit still applies
+  const limit = checkRateLimit(clientIp(req), Date.now(), { skipPerIp: isServiceCall(req) });
   if (!limit.ok) {
     return Response.json({ error: limit.message }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } });
   }

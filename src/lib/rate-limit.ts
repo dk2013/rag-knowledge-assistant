@@ -26,7 +26,14 @@ export function clientIp(req: Request): string {
 
 export type LimitResult = { ok: true } | { ok: false; message: string; retryAfterSec: number };
 
-export function checkRateLimit(ip: string, now = Date.now()): LimitResult {
+// A trusted service sends "Authorization: Bearer <token>" with one of SERVICE_TOKENS.
+export function isServiceCall(req: Request): boolean {
+  const auth = req.headers.get("authorization") ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  return token.length > 0 && config.serviceTokens.includes(token);
+}
+
+export function checkRateLimit(ip: string, now = Date.now(), opts: { skipPerIp?: boolean } = {}): LimitResult {
   const today = new Date(now).toISOString().slice(0, 10);
   if (store.day !== today) {
     store.day = today;
@@ -42,7 +49,7 @@ export function checkRateLimit(ip: string, now = Date.now()): LimitResult {
     };
   }
 
-  if (config.rateLimitPerIp > 0) {
+  if (config.rateLimitPerIp > 0 && !opts.skipPerIp) {
     const recent = (store.perIp.get(ip) ?? []).filter((t) => now - t < HOUR_MS);
     if (recent.length >= config.rateLimitPerIp) {
       store.perIp.set(ip, recent);
