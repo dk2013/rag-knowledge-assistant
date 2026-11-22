@@ -1,0 +1,15 @@
+# Override for servers where a shared Caddy ("edge") proxies several projects over a Docker network
+# named `edge` (instead of nginx on the host). Use together with docker-compose.prod.yml:
+#   docker compose -f docker-compose.prod.yml -f docker-compose.edge.yml --env-file .env.production up -d
+# The edge proxy reaches the app as rag-knowledge-assistant:3000 (see deploy/Caddyfile.example).
+services:
+  app:
+    networks:
+      default: {}
+      edge:
+        aliases: [rag-knowledge-assistant]
+
+networks:
+  edge:
+    name: edge
+    external: true

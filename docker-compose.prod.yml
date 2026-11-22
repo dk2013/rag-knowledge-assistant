@@ -10,6 +10,8 @@ services:
   db:
     image: pgvector/pgvector:pg17
     restart: unless-stopped
+    # small-server settings: the demo data is tiny, keep Postgres memory low
+    command: ["postgres", "-c", "shared_buffers=32MB", "-c", "max_connections=20", "-c", "work_mem=4MB"]
     environment:
       POSTGRES_USER: rag
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
@@ -21,7 +23,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    mem_limit: 512m
+    mem_limit: 256m
 
   app:
     image: rag-knowledge-assistant:latest
@@ -35,7 +37,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    mem_limit: 512m
+    mem_limit: 384m
 
 volumes:
   rag_pgdata:

@@ -1,0 +1,19 @@
+# Caddy site for the public demo (for a server where Caddy is the edge proxy; nginx version: nginx.conf.example).
+# Replace the host name, put the file where the edge Caddy imports site files, then reload Caddy.
+rag.example.com {
+	# compress pages, but not the streamed chat answers (compression would buffer them)
+	@compress not path /api/chat
+	encode @compress zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	reverse_proxy rag-knowledge-assistant:3000 {
+		# the app rate-limits by X-Real-IP: always overwrite it with the real client address
+		header_up X-Real-IP {remote_host}
+		# send streamed answers to the browser immediately
+		flush_interval -1
+	}
+}
