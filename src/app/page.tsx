@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Source {
   n: number;
@@ -33,6 +33,15 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [demo, setDemo] = useState<{ docs: number; repoUrl: string | null } | null>(null);
+
+  // In the public demo, tell visitors what the knowledge base contains.
+  useEffect(() => {
+    fetch("/api/documents")
+      .then((r) => r.json())
+      .then((d) => d.readOnly && setDemo({ docs: d.documents?.length ?? 0, repoUrl: d.repoUrl ?? null }))
+      .catch(() => {});
+  }, []);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const update = (fn: (last: Message) => Message) =>
@@ -99,6 +108,20 @@ export default function ChatPage() {
             <p className="mt-2 text-sm text-[var(--muted)]">
               Answers come only from the uploaded documents, with numbered citations to the exact passages.
             </p>
+            {demo && (
+              <p className="mx-auto mt-3 max-w-xl text-xs text-[var(--muted)]">
+                Public demo · the knowledge base is {demo.docs} sample documents about a fictional logistics company
+                (handbook, product FAQ, security policy, onboarding guide)
+                {demo.repoUrl ? (
+                  <>
+                    {" · "}
+                    <a href={demo.repoUrl} className="text-[var(--accent)] hover:underline" target="_blank" rel="noreferrer">
+                      source code
+                    </a>
+                  </>
+                ) : null}
+              </p>
+            )}
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s) => (
                 <button
@@ -172,7 +195,7 @@ function AssistantMessage({ message, pending }: { message: Message; pending: boo
         </p>
       )}
       {message.error ? (
-        <p className="text-sm text-red-500">Error: {message.error}</p>
+        <p className="text-sm text-red-500">{message.error}</p>
       ) : (
         <p className="whitespace-pre-wrap leading-relaxed">
           {parts.map((part, i) => {

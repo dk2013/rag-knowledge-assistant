@@ -1,6 +1,7 @@
 // Step 3 of ingestion (and step 1 of answering): turn text into vectors.
 // Texts with similar meaning get vectors that point in similar directions.
 import { config } from "./config";
+import { ProviderError, providerError } from "./llm";
 
 // nomic-embed-text was trained with task prefixes; using them noticeably improves retrieval.
 const NOMIC_PREFIX = { document: "search_document: ", query: "search_query: " } as const;
@@ -22,14 +23,14 @@ async function embedWithOllama(texts: string[], kind: Kind): Promise<number[][]>
 }
 
 async function embedWithOpenAI(texts: string[]): Promise<number[][]> {
-  if (!config.openaiApiKey) throw new Error("OPENAI_API_KEY is not set");
+  if (!config.openaiApiKey) throw new ProviderError("The AI provider is not configured (OPENAI_API_KEY is empty).");
   const res = await fetch("https://api.openai.com/v1/embeddings", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${config.openaiApiKey}` },
     // text-embedding-3-* can shorten vectors; we ask for the same size as the DB column
     body: JSON.stringify({ model: config.openaiEmbeddingModel, input: texts, dimensions: config.embeddingDim }),
   });
-  if (!res.ok) throw new Error(`OpenAI embed failed: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw await providerError("OpenAI embeddings", res);
   const data = (await res.json()) as { data: { embedding: number[]; index: number }[] };
   return data.data.sort((a, b) => a.index - b.index).map((d) => d.embedding);
 }

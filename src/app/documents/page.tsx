@@ -22,10 +22,15 @@ export default function DocumentsPage() {
   const [uploading, setUploading] = useState(false);
   const [results, setResults] = useState<UploadResult[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  const [readOnly, setReadOnly] = useState(false); // public demo: no uploads or deletes
+  const [repoUrl, setRepoUrl] = useState<string | null>(null);
 
   async function load() {
     const res = await fetch("/api/documents");
-    setDocs((await res.json()).documents ?? []);
+    const data = await res.json();
+    setDocs(data.documents ?? []);
+    setReadOnly(Boolean(data.readOnly));
+    setRepoUrl(data.repoUrl ?? null);
   }
 
   useEffect(() => {
@@ -64,6 +69,26 @@ export default function DocumentsPage() {
         </p>
       </div>
 
+      {readOnly ? (
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-5 text-sm">
+          <p className="font-medium">This public demo is read-only.</p>
+          <p className="mt-1 text-[var(--muted)]">
+            The knowledge base contains sample documents about a fictional company. To upload your own Markdown, text or
+            PDF files, run the project locally
+            {repoUrl ? (
+              <>
+                {" "}
+                (
+                <a href={repoUrl} className="text-[var(--accent)] hover:underline" target="_blank" rel="noreferrer">
+                  source code on GitHub
+                </a>
+                )
+              </>
+            ) : null}
+            .
+          </p>
+        </div>
+      ) : (
       <label
         onDragOver={(e) => {
           e.preventDefault();
@@ -89,6 +114,7 @@ export default function DocumentsPage() {
         <span className="font-medium">{uploading ? "Ingesting…" : "Drop files here or click to upload"}</span>
         <span className="mt-1 text-xs text-[var(--muted)]">.md, .txt, .pdf · up to 10 MB each</span>
       </label>
+      )}
 
       {results.length > 0 && (
         <ul className="space-y-1 text-sm">
@@ -121,9 +147,11 @@ export default function DocumentsPage() {
                 <td className="px-4 py-2 text-right">{d.chunks}</td>
                 <td className="px-4 py-2 text-[var(--muted)]">{new Date(d.created_at).toLocaleDateString()}</td>
                 <td className="px-4 py-2 text-right">
-                  <button onClick={() => remove(d.id)} className="text-xs text-red-500 hover:underline">
-                    Delete
-                  </button>
+                  {!readOnly && (
+                    <button onClick={() => remove(d.id)} className="text-xs text-red-500 hover:underline">
+                      Delete
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

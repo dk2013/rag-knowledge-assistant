@@ -7,6 +7,22 @@ export interface ChatMessage {
   content: string;
 }
 
+// Errors whose message is safe and useful to show to a visitor of the public demo.
+export class ProviderError extends Error {}
+
+// Turn an HTTP error from a model provider into a short message. Quota and auth problems get a friendly
+// text; the raw response (which can contain account details) is only logged on the server.
+export async function providerError(provider: string, res: Response): Promise<Error> {
+  const body = await res.text();
+  console.error(`${provider} error ${res.status}: ${body.slice(0, 500)}`);
+  if (res.status === 429 && /quota|billing|credit/i.test(body)) {
+    return new ProviderError("The demo has used up its AI budget for now. Please try again later.");
+  }
+  if (res.status === 429) return new ProviderError("The AI provider is busy. Please try again in a minute.");
+  if (res.status === 401 || res.status === 403) return new ProviderError("The AI provider is not configured correctly.");
+  return new Error(`${provider} request failed: ${res.status}`);
+}
+
 export interface ChatOptions {
   temperature?: number; // default 0.1: low temperature = fewer creative "facts"
   maxTokens?: number; // cap the output length (useful for short helper calls like query rewriting)
@@ -52,7 +68,7 @@ async function* streamOllama(messages: ChatMessage[], opts: ChatOptions): AsyncG
 }
 
 async function* streamOpenAI(messages: ChatMessage[], opts: ChatOptions): AsyncGenerator<string> {
-  if (!config.openaiApiKey) throw new Error("OPENAI_API_KEY is not set");
+  if (!config.openaiApiKey) throw new ProviderError("The AI provider is not configured (OPENAI_API_KEY is empty).");
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${config.openaiApiKey}` },
@@ -64,7 +80,7 @@ async function* streamOpenAI(messages: ChatMessage[], opts: ChatOptions): AsyncG
       ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
     }),
   });
-  if (!res.ok || !res.body) throw new Error(`OpenAI chat failed: ${res.status} ${await res.text()}`);
+  if (!res.ok || !res.body) throw await providerError("OpenAI chat", res);
   for await (const line of readLines(res.body)) {
     if (!line.startsWith("data:")) continue;
     const payload = line.slice(5).trim();

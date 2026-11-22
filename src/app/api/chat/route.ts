@@ -1,21 +1,38 @@
 // POST /api/chat  { messages: [{role, content}, ...] }
 // Streams NDJSON events: {"type":"sources",...} → {"type":"token",...}* → {"type":"done"} (or {"type":"error"})
-import { streamChat, modelLabel, type ChatMessage } from "@/lib/llm";
+import { config } from "@/lib/config";
+import { streamChat, modelLabel, ProviderError, type ChatMessage } from "@/lib/llm";
 import { buildMessages } from "@/lib/prompt";
 import { retrieve } from "@/lib/retrieve";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 import { rewriteQuery } from "@/lib/rewrite";
+
+const MAX_BODY_CHARS = 50_000; // a conversation is a few KB; anything bigger is not a real chat
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as { messages?: ChatMessage[] } | null;
-  const messages = (body?.messages ?? []).filter(
-    (m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string",
-  );
+  const raw = await req.text();
+  if (raw.length > MAX_BODY_CHARS) return Response.json({ error: "Request is too large" }, { status: 413 });
+  let body: { messages?: ChatMessage[] } | null = null;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const messages = (Array.isArray(body?.messages) ? body.messages : [])
+    .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+    .slice(-10); // only recent turns matter (rewriting uses the last 4)
   const question = messages.at(-1)?.role === "user" ? messages.at(-1)!.content.trim() : "";
   if (!question) return Response.json({ error: "Last message must be a non-empty user question" }, { status: 400 });
   if (question.length > 2000) return Response.json({ error: "Question is too long" }, { status: 400 });
+
+  // checked after validation, so malformed requests don't use up a visitor's quota
+  const limit = checkRateLimit(clientIp(req));
+  if (!limit.ok) {
+    return Response.json({ error: limit.message }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } });
+  }
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -53,7 +70,15 @@ export async function POST(req: Request) {
         }
         send({ type: "done", totalMs: Date.now() - started });
       } catch (err) {
-        send({ type: "error", message: err instanceof Error ? err.message : String(err) });
+        console.error("chat failed:", err);
+        // In the public demo show only messages meant for visitors; locally show the real error.
+        const message =
+          err instanceof ProviderError || !config.demoMode
+            ? err instanceof Error
+              ? err.message
+              : String(err)
+            : "Something went wrong. Please try again.";
+        send({ type: "error", message });
       } finally {
         controller.close();
       }
