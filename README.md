@@ -2,6 +2,8 @@
 
 Ask questions about your documents and get grounded answers with numbered source citations.
 
+**Live demo: [rag.metamaker.ca](https://rag.metamaker.ca)** (read-only sample knowledge base, OpenAI `gpt-4o-mini`, rate-limited).
+
 Built with **Next.js 15, TypeScript, Node.js, PostgreSQL + pgvector** and **Ollama** (fully local) or **OpenAI** (one env variable). No LangChain or vector-DB SaaS: every step of the pipeline is plain, readable TypeScript and SQL.
 
 ![Demo: a question, a streamed answer with citations, a follow-up question and its sources](docs/demo.gif)
@@ -106,6 +108,8 @@ Follow-up questions (`eval/followups.json`: 10 conversations, one of them a topi
 | **LLM rewrite + fallback** | **90%** | **100%** | **0.95** |
 
 Follow-up answer accuracy: **10/10** with local `llama3.2`. Chat history is used only for rewriting: passing it into the answer prompt made the small model refuse even when the right passage was retrieved (7/10).
+
+Same evals on the live deployment (OpenAI `gpt-4o-mini` + `text-embedding-3-small` at 768 dimensions): hybrid retrieval 100% hit@1 / MRR 1.00, answers **16/16**; follow-ups with LLM rewrite 100% hit@1 / MRR 1.00 (follow-up as typed: 50% / 0.63), answers **10/10**. The stronger model rewrites every follow-up itself, so the fallback is not needed there.
 
 Run: `npm run eval` or `npm run eval -- --followups` (add `--answers` to also check generated answers).
 
