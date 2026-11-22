@@ -1,0 +1,41 @@
+# Production stack for the public demo: the app and its own Postgres + pgvector, in an isolated Docker network.
+# The app listens only on 127.0.0.1 (APP_PORT); nginx on the host proxies the subdomain to it.
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#   docker compose -f docker-compose.prod.yml --env-file .env.production run --rm app npm run db:migrate
+#   docker compose -f docker-compose.prod.yml --env-file .env.production run --rm app npm run ingest -- ./sample-docs
+name: rag-knowledge-assistant
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: rag
+    volumes:
+      - rag_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d rag"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    mem_limit: 512m
+
+  app:
+    image: rag-knowledge-assistant:latest
+    build: .
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      DATABASE_URL: postgres://rag:${POSTGRES_PASSWORD}@db:5432/rag
+    ports:
+      - "127.0.0.1:${APP_PORT:-3100}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 512m
+
+volumes:
+  rag_pgdata:

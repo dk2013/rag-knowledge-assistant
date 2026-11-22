@@ -72,6 +72,19 @@ CLI: `npm run ask -- "How many vacation days do new employees get?"` · inspect 
 
 To use OpenAI, set `LLM_PROVIDER=openai`, `EMBEDDING_PROVIDER=openai` and `OPENAI_API_KEY` in `.env`, then re-ingest.
 
+## Public demo deployment
+
+The repo includes a production setup for a public, read-only demo: `Dockerfile`, `docker-compose.prod.yml` (app + its own Postgres/pgvector, app bound to `127.0.0.1`), `.env.production.example` and an nginx site template in `deploy/`.
+
+Demo protection is configured with environment variables: `DEMO_MODE=true` (no uploads or deletes), `RATE_LIMIT_PER_IP` (questions per IP per hour), `DAILY_QUESTION_LIMIT` (site-wide daily cap), plus `limit_req` in nginx. Provider errors are shown to visitors as short messages; details stay in server logs.
+
+```bash
+cp .env.production.example .env.production   # fill in POSTGRES_PASSWORD and OPENAI_API_KEY
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm app npm run db:migrate
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm app npm run ingest -- ./sample-docs
+```
+
 ## Evaluation
 
 16 questions over the sample knowledge base (`eval/questions.json`):

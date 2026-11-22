@@ -1,0 +1,27 @@
+# nginx site for the public demo. Replace rag.example.com with the real subdomain,
+# put this file in /etc/nginx/sites-available/ (or conf.d/), then run: certbot --nginx -d rag.example.com
+
+# Extra flood protection in front of the app's own limits: 30 API requests per minute per IP.
+limit_req_zone $binary_remote_addr zone=rag_demo_api:10m rate=30r/m;
+
+server {
+    listen 80;
+    server_name rag.example.com;
+
+    client_max_body_size 1m;
+
+    location /api/ {
+        limit_req zone=rag_demo_api burst=10 nodelay;
+        limit_req_status 429;
+        proxy_pass http://127.0.0.1:3100;
+        include /etc/nginx/rag-demo-proxy.conf;
+        # stream answers token by token instead of buffering the whole response
+        proxy_buffering off;
+        proxy_read_timeout 120s;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3100;
+        include /etc/nginx/rag-demo-proxy.conf;
+    }
+}
